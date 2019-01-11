@@ -1,0 +1,8 @@
+mqtt:
+  host: test.mosquitto.org
+  topic_prefix: anki/overdrive
+
+anki:
+  vehicles:
+    - name: X52
+      mac: f7:27:7e:4d:2a:aa
