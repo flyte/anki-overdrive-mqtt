@@ -122,17 +122,17 @@ if __name__ == "__main__":
     client = init_mqtt(config["mqtt"])
 
     topic_prefix = config["mqtt"]["topic_prefix"]
-    vehicles_by_mac = {x['mac'].lower(): x for x in config['anki']['vehicles']}
-    vehicles_by_name = {x['name']: x for x in config['anki']['vehicles']}
+    vehicle_config_by_mac = {x['mac'].lower(): x for x in config['anki']['vehicles']}
 
     def publish_params(topic, addr, params=None):
-        veh = vehicles_by_mac[addr.lower()]
+        veh = vehicle_config_by_mac[addr.lower()]
         client.publish(
             '%s/%s/%s' % (topic_prefix, veh['name'], topic),
             json.dumps(params) if params is not None else None,
             qos=2)
 
     vehicles = {}
+    vehicles_by_name = {}
     loc_change_callback = partial(publish_params, 'location')
     transition_callback = partial(publish_params, 'transition')
     pong_callback = partial(publish_params, 'pong')
@@ -154,12 +154,11 @@ if __name__ == "__main__":
             _LOG.info(
                 "Connected to the MQTT broker with protocol v%s.",
                 config['mqtt']['protocol'])
-            print(vehicles)
-            for veh in vehicles.values():
+            for veh_name in vehicles.keys():
                 for suffix in ('speed', 'lane', 'ping'):
                     topic = '%s/%s/%s' % (
                         topic_prefix,
-                        veh['name'],
+                        veh_name,
                         suffix
                     )
                     client.subscribe(topic, qos=1)
@@ -202,14 +201,13 @@ if __name__ == "__main__":
         :return: None
         :rtype: NoneType
         """
-        print(msg)
         try:
             match = re.match(r'^%s/(.+?)/(.+?)$' % topic_prefix, msg.topic)
             if match is None:
                 _LOG.warning('Could not parse topic: %s', msg.topic)
                 return
             veh_name, action = match.groups()
-            veh = vehicles_by_name[veh_name]
+            veh = vehicles[veh_name]
             if action == 'speed':
                 pass
             elif action == 'lane':
@@ -222,14 +220,6 @@ if __name__ == "__main__":
 
     client.on_connect = on_conn
     client.on_message = on_msg
-
-    try:
-        client.connect(config["mqtt"]["host"], config["mqtt"]["port"], 60)
-    except socket.error as err:
-        _LOG.fatal("Unable to connect to MQTT server: %s" % err)
-        sys.exit(1)
-
-    client.loop_start()
 
     for vehicle in config['anki']['vehicles']:
         veh = Overdrive(vehicle['mac'])
@@ -244,6 +234,14 @@ if __name__ == "__main__":
         vehicles[vehicle['name']] = veh
         veh.changeSpeed(500, 800)
         veh.ping()
+
+    try:
+        client.connect(config["mqtt"]["host"], config["mqtt"]["port"], 60)
+    except socket.error as err:
+        _LOG.fatal("Unable to connect to MQTT server: %s" % err)
+        sys.exit(1)
+
+    client.loop_start()
 
     try:
         while True:
