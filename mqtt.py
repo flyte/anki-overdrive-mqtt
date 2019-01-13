@@ -209,9 +209,20 @@ if __name__ == "__main__":
             veh_name, action = match.groups()
             veh = vehicles[veh_name]
             if action == 'speed':
-                pass
+                data = json.loads(msg.payload)
+                veh.changeSpeed(data['speed'], data['accel'])
             elif action == 'lane':
-                pass
+                data = json.loads(msg.payload)
+                try:
+                    direction = data['direction']
+                except KeyError:
+                    direction = None
+                if direction == 'left':
+                    veh.changeLaneLeft(data['speed'], data['accel'])
+                elif direction == 'right':
+                    veh.changeLaneRight(data['speed'], data['accel'])
+                else:
+                    veh.changeLane(data['speed'], data['accel'], data['offset'])
             elif action == 'ping':
                 veh.ping()
 
