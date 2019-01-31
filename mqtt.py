@@ -154,7 +154,7 @@ if __name__ == "__main__":
             _LOG.info(
                 "Connected to the MQTT broker with protocol v%s.",
                 config['mqtt']['protocol'])
-            for veh_name in vehicles.keys():
+            for veh_name in list(vehicles.keys()) + ['*']:
                 for suffix in ('speed', 'lane', 'ping'):
                     topic = '%s/%s/%s' % (
                         topic_prefix,
@@ -207,10 +207,15 @@ if __name__ == "__main__":
                 _LOG.warning('Could not parse topic: %s', msg.topic)
                 return
             veh_name, action = match.groups()
-            veh = vehicles[veh_name]
+            selected_vehicles = []
+            if veh_name == '*':
+                selected_vehicles = vehicles.values()
+            else:
+                selected_vehicles = [vehicles[veh_name]]
             if action == 'speed':
                 data = json.loads(msg.payload)
-                veh.changeSpeed(data['speed'], data['accel'])
+                for veh in selected_vehicles:
+                    veh.changeSpeed(data['speed'], data['accel'])
             elif action == 'lane':
                 data = json.loads(msg.payload)
                 try:
@@ -218,16 +223,20 @@ if __name__ == "__main__":
                 except KeyError:
                     direction = None
                 if direction == 'left':
-                    veh.changeLaneLeft(data['speed'], data['accel'])
+                    for veh in selected_vehicles:
+                        veh.changeLaneLeft(data['speed'], data['accel'])
                 elif direction == 'right':
-                    veh.changeLaneRight(data['speed'], data['accel'])
+                    for veh in selected_vehicles:
+                        veh.changeLaneRight(data['speed'], data['accel'])
                 else:
-                    veh.changeLane(data['speed'], data['accel'], data['offset'])
+                    for veh in selected_vehicles:
+                        veh.changeLane(data['speed'], data['accel'], data['offset'])
             elif action == 'ping':
-                veh.ping()
+                for veh in selected_vehicles:
+                    veh.ping()
 
         except Exception:
-            _LOG.exception('Exception while handing received MQTT message:')
+            _LOG.exception('Exception while handling received MQTT message:')
 
     client.on_connect = on_conn
     client.on_message = on_msg
