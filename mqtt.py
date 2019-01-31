@@ -213,11 +213,11 @@ if __name__ == "__main__":
             else:
                 selected_vehicles = [vehicles[veh_name]]
             if action == 'speed':
-                data = json.loads(msg.payload)
+                data = json.loads(msg.payload.decode('utf8'))
                 for veh in selected_vehicles:
                     veh.changeSpeed(data['speed'], data['accel'])
             elif action == 'lane':
-                data = json.loads(msg.payload)
+                data = json.loads(msg.payload.decode('utf8'))
                 try:
                     direction = data['direction']
                 except KeyError:
