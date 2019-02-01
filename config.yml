@@ -1,8 +1,17 @@
 mqtt:
-  host: test.mosquitto.org
+  host: 10.0.0.15
+  user: anki
+  password: overdrive
   topic_prefix: anki/overdrive
 
 anki:
   vehicles:
-    - name: X52
+    - name: X52_1
       mac: f7:27:7e:4d:2a:aa
+    - name: Freewheel_1
+      mac: d2:19:59:f4:73:c9
+    - name: X52_2
+      mac: d7:8c:02:97:59:ca
+    - name: Freewheel_2
+      mac: cb:37:b4:9c:95:f2
+

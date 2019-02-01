@@ -155,7 +155,8 @@ if __name__ == "__main__":
                 "Connected to the MQTT broker with protocol v%s.",
                 config['mqtt']['protocol'])
             for veh_name in list(vehicles.keys()) + ['*']:
-                for suffix in ('speed', 'lane', 'ping'):
+                for suffix in (
+                        'speed', 'lane', 'ping', 'connect', 'disconnect'):
                     topic = '%s/%s/%s' % (
                         topic_prefix,
                         veh_name,
