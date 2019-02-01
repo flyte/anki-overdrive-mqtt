@@ -234,6 +234,12 @@ if __name__ == "__main__":
             elif action == 'ping':
                 for veh in selected_vehicles:
                     veh.ping()
+            elif action == 'connect':
+                for veh in selected_vehicles:
+                    veh.connect()
+            elif action == 'disconnect':
+                for veh in selected_vehicles:
+                    veh.disconnect()
 
         except Exception:
             _LOG.exception('Exception while handling received MQTT message:')
@@ -244,15 +250,14 @@ if __name__ == "__main__":
     for vehicle in config['anki']['vehicles']:
         veh = Overdrive(vehicle['mac'])
         client.publish(
-        '%s/%s/connected' % (topic_prefix, vehicle['name']),
-        True,
-        qos=2
+            '%s/%s/connected' % (topic_prefix, vehicle['name']),
+            True,
+            qos=2
         )
         veh.setLocationChangeCallback(loc_change_callback)
         veh.setTransitionCallback(transition_callback)
         veh.setPongCallback(pong_callback)
         vehicles[vehicle['name']] = veh
-        veh.changeSpeed(500, 800)
         veh.ping()
 
     try:
